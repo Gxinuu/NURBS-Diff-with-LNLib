@@ -1,13 +1,12 @@
 # ***This work is in progress.***
 
 ## Introduction
-
 **[NURBS-Diff](https://www.sciencedirect.com/science/article/abs/pii/S0010448522000045)** is A Differentiable Programming Module for NURBS, and **[LNLib](https://github.com/BIMCoderLiang/LNLib)** is a C++ NURBS Algorithms Library on Github. **NURBS-Diff-with-LNLib** is a simplified reproduction for NURBS-Diff by using LNLib.
 
 ## Run NURBS-Diff-with-LNLib
 - Download Libtorch from https://pytorch.org/get-started/locally/. (For example: My local-download folder is C:/Code/CodeReference/)
 - Reset Libtorch Path of CMakeLists.txt (in **src** folder) up to your Libtorch download path.
-- Run build.bat first to construct C++ solution by CMake.
+- Run build.bat to construct C++ solution by CMake.
 
 ## Contributing
 Welcome join this project including discussions in **Issues** and make **Pull requests**.
