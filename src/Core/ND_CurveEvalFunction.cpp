@@ -1,4 +1,3 @@
-#include "ND_CurveEvalFunction.h"
 /*
  * Author:
  * Copyright (c) 2025/02/24- Yuqing Liang (BIMCoder Liang)
@@ -9,13 +8,9 @@
  *
  */
 
-torch::Tensor ND_LNLib::CurveEvalFunction::forward(AutogradContext* ctx,
-													torch::Tensor controlPoints,
-													torch::Tensor uspan,
-													torch::Tensor basisFunctions,
-													torch::Tensor paramList,
-													int degree,
-													int dimension = 3)
+#include "ND_CurveEvalFunction.h"
+
+torch::Tensor ND_LNLib::CurveEvalFunction::forward(AutogradContext* ctx,torch::Tensor controlPoints,torch::Tensor uspan,torch::Tensor basisFunctions,torch::Tensor paramList,int degree,int dimension = 3)
 {
 	ctx->save_for_backward({ controlPoints });
 	ctx->saved_data["uspan"] = uspan;
@@ -68,8 +63,8 @@ tensor_list ND_LNLib::CurveEvalFunction::backward(AutogradContext* ctx, tensor_l
 	{
 		for (int i = 0; i < paramList.size(0); i++)
 		{
-			auto temp = grad_cw[k];
-			auto grad_ctrl_pts_i = torch::zeros_like(controlPoints[k]);
+			torch::Tensor temp = grad_cw[k];
+			torch::Tensor grad_ctrl_pts_i = torch::zeros_like(controlPoints[k]);
 			for (int j = 0; j <= degree; j++)
 			{
 				grad_ctrl_pts_i[uspan[i].item<int>() - degree + j] = grad_ctrl_pts_i[uspan[i].item<int>() - degree + j] + basisFunctions[i][j].item<float>() * temp[i];
