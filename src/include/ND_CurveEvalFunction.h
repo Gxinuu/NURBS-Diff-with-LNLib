@@ -12,6 +12,8 @@
 
 #include "ND_Definitions.h"
 #include <torch/torch.h>
+#include <XYZW.h>
+#include <vector>
 
 using namespace torch::autograd;
 
@@ -19,11 +21,18 @@ namespace ND_LNLib
 {
 	class ND_LNLib_EXPORT CurveEvalFunction:public Function<CurveEvalFunction>
 	{
-
 	public:
-		static void forward(AutogradContext* ctx);
-		static void backward(AutogradContext* ctx);
 
+		static torch::Tensor forward(AutogradContext* ctx,
+										torch::Tensor controlPoints,
+										torch::Tensor uspan,
+										torch::Tensor basisFunctions,
+										torch::Tensor paramList,
+										int degree,
+										int dimension = 3);
+
+		static tensor_list backward(AutogradContext* ctx, 
+										tensor_list grad_outputs);
 	};
 
 }
