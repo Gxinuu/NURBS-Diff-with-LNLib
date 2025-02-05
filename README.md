@@ -15,7 +15,7 @@ Welcome join this project including discussions in **Issues** and make **Pull re
 
 **NURBS-Diff** is work done at Integrated Design and Engineering Analysis Lab, Iowa State University under Prof. Adarsh Krishnamurthy. Collaborators : Aditya Balu (baditya@iastate.edu), Harshil Shah (harshil@iastate.edu)
 
-**LNLib &  NURBS-Diff-with-LNLib** are created by Yuqing Liang (bim.frankliang@foxmail.com), BIMCoder Liang, 微信公众号：**BIMCoder**)
+**LNLib** & **NURBS-Diff-with-LNLib** are created by Yuqing Liang (bim.frankliang@foxmail.com), 微信公众号：**BIMCoder**
 
 ## License
 The source code is published under [GNU General Public License v3.0](https://www.gnu.org/licenses/), the license is available [here](LICENSE).
