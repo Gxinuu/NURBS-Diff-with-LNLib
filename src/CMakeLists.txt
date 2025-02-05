@@ -1,7 +1,7 @@
 ﻿set(TARGET_NAME ND_LNLib)
 project(${TARGET_NAME} LANGUAGES CXX)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(${TARGET_NAME})
+add_library(${TARGET_NAME} SHARED "")
 target_compile_definitions(${TARGET_NAME}  PRIVATE ${TARGET_NAME}_HOME)
 
 target_include_directories(${TARGET_NAME} PUBLIC

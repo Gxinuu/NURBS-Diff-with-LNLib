@@ -10,7 +10,7 @@
 
 #include "ND_CurveEvalFunction.h"
 
-torch::Tensor ND_LNLib::CurveEvalFunction::forward(AutogradContext* ctx,torch::Tensor controlPoints,torch::Tensor uspan,torch::Tensor basisFunctions,torch::Tensor paramList,int degree,int dimension = 3)
+torch::Tensor ND_LNLib::CurveEvalFunction::forward(AutogradContext* ctx, torch::Tensor controlPoints, torch::Tensor uspan, torch::Tensor basisFunctions, torch::Tensor paramList, int degree, int dimension)
 {
 	ctx->save_for_backward({ controlPoints });
 	ctx->saved_data["uspan"] = uspan;
@@ -25,7 +25,7 @@ torch::Tensor ND_LNLib::CurveEvalFunction::forward(AutogradContext* ctx,torch::T
 		for (int x = 0; x < paramList.size(0); x++)
 		{
 			torch::Tensor Cw = torch::zeros({ dimension + 1 });
-			// similar with LNLib BsplineCurve::GetPointOnCurve()
+			// similar with LNLib NurbsCurve::GetPointOnCurve()
 			for (int i = 0; i <= degree; i++)
 			{
 				Cw = Cw + basisFunctions[x][i].item<double>() * controlPoints[k][uspan[x].item<int>() - degree + i];
@@ -34,6 +34,7 @@ torch::Tensor ND_LNLib::CurveEvalFunction::forward(AutogradContext* ctx,torch::T
 		}
 	}
 	ctx->saved_data["curve"] = curve;
+
 	torch::Tensor sliced_curves = curve.slice(2, 0, dimension);
 	torch::Tensor divisor = curve.select(2, dimension).unsqueeze(-1);
 	torch::Tensor result = sliced_curves / divisor;

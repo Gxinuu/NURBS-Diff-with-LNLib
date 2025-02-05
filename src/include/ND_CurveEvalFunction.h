@@ -21,7 +21,7 @@ namespace ND_LNLib
 	{
 	public:
 
-		static torch::Tensor forward(AutogradContext* ctx,torch::Tensor controlPoints,torch::Tensor uspan,torch::Tensor basisFunctions,torch::Tensor paramList,int degree,int dimension = 3);
+		static torch::Tensor forward(AutogradContext* ctx, torch::Tensor controlPoints, torch::Tensor uspan, torch::Tensor basisFunctions, torch::Tensor paramList, int degree, int dimension = 3);
 
 		static tensor_list backward(AutogradContext* ctx, tensor_list grad_outputs);
 	};

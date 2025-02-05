@@ -19,13 +19,23 @@ namespace ND_LNLib
 {
 	class ND_LNLib_EXPORT CurveEvalModule:torch::nn::Module
 	{
-
 	public:
 		
-		void forward();
+		CurveEvalModule(int controlPointsCount, int degree, int evalCount, int dimension = 3);
 
+		torch::Tensor forward(torch::Tensor x);
+
+	private:
+
+		int _controlPointsCount = 0;
+		int _degree = 0;
+		int _evalCount = 0;
+		int _dimension = 3;
+		torch::Tensor _knotVector;
+		torch::Tensor _basisFunctions;
+		torch::Tensor _uspan;
+		torch::Tensor _paramList;
 	};
-
 }
 
 
