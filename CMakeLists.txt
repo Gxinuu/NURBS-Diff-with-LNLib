@@ -30,6 +30,8 @@ endmacro(SUBDIRLIST)
 
 add_subdirectory(src)
 
-if(MSVC)
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT LNLibViewer)
+option(ENABLE_EXAMPLES "Enable examples" ON)
+if(ENABLE_EXAMPLES)
+	set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT Examples)
+	add_subdirectory(examples)
 endif()

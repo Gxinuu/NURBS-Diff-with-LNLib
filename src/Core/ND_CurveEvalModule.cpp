@@ -1,6 +1,6 @@
 /*
  * Author:
- * Copyright (c) 2025/02/24- Yuqing Liang (BIMCoder Liang)
+ * Copyright (c) 2025/02/04- Yuqing Liang (BIMCoder Liang)
  * bim.frankliang@foxmail.com
  *
  * Use of this source code is governed by a GPL-3.0 license that can be found in
@@ -35,7 +35,7 @@ ND_LNLib::CurveEvalModule::CurveEvalModule(int controlPointsCount, int degree, i
 	}
 
 	_knotVector = torch::from_blob(knotVector.data(), { static_cast<long>(knotVector.size()) }, torch::kDouble);
-	_paramList = torch::linspace(0.0, 1.0, _evalCount, torch::kDouble);
+	_paramList = torch::linspace(knotVector[0], knotVector[knotVector.size() - 1], _evalCount, torch::kDouble);
 
 	int paramSize = _paramList.size(0);
 
