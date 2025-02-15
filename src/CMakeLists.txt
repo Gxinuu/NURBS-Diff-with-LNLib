@@ -9,9 +9,9 @@ target_include_directories(${TARGET_NAME} PUBLIC
 	"${LNLib_DIR}/include"
 )
 
-set(Torch_DIR "C:/Code/CodeReference/libtorch/share/cmake/Torch")
+set(Torch_DIR "D:/Libtorch/libtorch/share/cmake/Torch")
 find_package(Torch REQUIRED)
-include_directories("C:/Code/CodeReference/libtorch/include","C:/Code/CodeReference/libtorch/include/torch/csrc/api/include")
+include_directories("D:/Libtorch/libtorch/include","D:/Libtorch/libtorch/include/torch/csrc/api/include")
 target_link_libraries(${TARGET_NAME} "${TORCH_LIBRARIES}")
 
 target_link_libraries(${TARGET_NAME} ${LIBS} ${LNLib_DIR}/lib/$<CONFIG>/LNLib.lib)
