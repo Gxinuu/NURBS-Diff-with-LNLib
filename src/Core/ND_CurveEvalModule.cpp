@@ -54,7 +54,7 @@ ND_LNLib::CurveEvalModule::CurveEvalModule(int controlPointsCount, int degree, i
 		Nu.emplace_back(Nu_Tensor);
 	}
 
-	_uspan = torch::from_blob(spanList.data(), torch::IntList(paramSize), torch::TensorOptions().dtype(torch::kInt));
+	_uspan = torch::from_blob(spanList.data(), torch::IntList(paramSize), torch::TensorOptions().dtype(torch::kInt)).clone();
 	_basisFunctions = torch::stack(Nu);
 }
 

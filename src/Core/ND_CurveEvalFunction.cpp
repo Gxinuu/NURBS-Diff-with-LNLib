@@ -35,9 +35,9 @@ torch::Tensor ND_LNLib::CurveEvalFunction::forward(AutogradContext* ctx, torch::
 	}
 	ctx->saved_data["curve"] = curve;
 
-	torch::Tensor sliced_curves = curve.slice(2, 0, dimension);
-	torch::Tensor divisor = curve.select(2, dimension).unsqueeze(-1);
-	torch::Tensor result = sliced_curves / divisor;
+	torch::Tensor numerator = curve.index({ torch::indexing::Slice(), torch::indexing::Slice(), torch::indexing::Slice(0, dimension) });
+	torch::Tensor denominator = curve.index({ torch::indexing::Slice(), torch::indexing::Slice(), dimension }).unsqueeze(-1);
+	torch::Tensor result = numerator / denominator;
 	return result;
 }
 
@@ -52,6 +52,7 @@ tensor_list ND_LNLib::CurveEvalFunction::backward(AutogradContext* ctx, tensor_l
 	torch::Tensor curve = ctx->saved_data["curve"].toTensor();
 
 	torch::Tensor grad_cw = torch::zeros({ grad_outputs[0].size(0), grad_outputs[0].size(1), dimension + 1 }, torch::kDouble);
+	
 	grad_cw.index_put_({ torch::indexing::Slice(), torch::indexing::Slice(), torch::indexing::Slice(0, dimension) }, grad_outputs[0]);
 	for (int d = 0; d < dimension; ++d) {
 		grad_cw.index({ torch::indexing::Slice(), torch::indexing::Slice(), dimension }) +=
