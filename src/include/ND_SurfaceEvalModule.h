@@ -20,8 +20,28 @@ namespace ND_LNLib
 	class ND_LNLib_EXPORT SurfaceEvalModule:torch::nn::Module
 	{
 	public:
+
+		SurfaceEvalModule(int uControlPointsCount, int vControlPointsCount, int degreeU, int degreeV, int uEvalCount, int vEvalCount, int dimension = 3);
+
+		torch::Tensor forward(torch::Tensor input);
 		
-		
+	private:
+
+		int _uControlPointsCount = 0;
+		int _vControlPointsCount = 0;
+		int _degreeU = 0;
+		int _degreeV = 0;
+		int _uEvalCount = 0;
+		int _vEvalCount = 0;
+		int _dimension = 3;
+		torch::Tensor _knotVectorU;
+		torch::Tensor _knotVectorV;
+		torch::Tensor _uBasisFunctions;
+		torch::Tensor _vBasisFunctions;
+		torch::Tensor _uspan;
+		torch::Tensor _vspan;
+		torch::Tensor _uParamList;
+		torch::Tensor _vParamList;
 	};
 }
 

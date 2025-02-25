@@ -23,7 +23,7 @@ namespace ND_LNLib
 		
 		CurveEvalModule(int controlPointsCount, int degree, int evalCount, int dimension = 3);
 
-		torch::Tensor forward(torch::Tensor x);
+		torch::Tensor forward(torch::Tensor input);
 
 	private:
 

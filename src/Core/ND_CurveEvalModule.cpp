@@ -58,8 +58,8 @@ ND_LNLib::CurveEvalModule::CurveEvalModule(int controlPointsCount, int degree, i
 	_basisFunctions = torch::stack(Nu);
 }
 
-torch::Tensor ND_LNLib::CurveEvalModule::forward(torch::Tensor x)
+torch::Tensor ND_LNLib::CurveEvalModule::forward(torch::Tensor input)
 {
 	CurveEvalFunction function;
-	return function.apply(x, _uspan, _basisFunctions, _paramList, _degree, _dimension);
+	return function.apply(input, _uspan, _basisFunctions, _paramList, _degree, _dimension);
 }
