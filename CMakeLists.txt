@@ -3,10 +3,11 @@ project(NURBS-Diff-with-LNLib)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
+set(CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakePredefinedTargets")
 
+set(Torch_DIR "C:/Code/CodeReference/libtorch/share/cmake/Torch")
 set(VTK_DIR "${CMAKE_SOURCE_DIR}/thirdparty/vtk")
 set(LNLib_DIR "${CMAKE_SOURCE_DIR}/thirdparty/LNLib")
 
