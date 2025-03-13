@@ -14,6 +14,7 @@
 #include "XYZW.h"
 #include "Constants.h"
 #include "LNObject.h"
+#include "NurbsSurface.h"
 
 #include <vtkNew.h>
 #include <vtkAxesActor.h>
@@ -37,7 +38,7 @@
 using namespace LNLib;
 VTK_MODULE_INIT(vtkRenderingOpenGL2)
 
-
+#pragma region Fitting Module
 void CurveFitting(vtkSmartPointer<vtkRenderer> renderer)
 {
     int num_ctrl_pts = 64;
@@ -161,8 +162,6 @@ void CurveFitting(vtkSmartPointer<vtkRenderer> renderer)
     }    
 }
 
-bool _is_curve_fitting = true;
-
 void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
 {
     int degreeU = 3;
@@ -213,13 +212,35 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     controlPoints[5][4] = XYZW(43.3333333, 50, 0, 1);
     controlPoints[5][5] = XYZW(50, 50, 0, 1);
 
+    //Target Surface
     LN_NurbsSurface surface;
     surface.DegreeU = degreeU;
     surface.DegreeV = degreeV;
     surface.KnotVectorU = kvU;
     surface.KnotVectorV = kvV;
     surface.ControlPoints = controlPoints;
+
+    //Start Fitting
+    int num_ctrl_pts_u = 12;
+    int num_ctrl_pts_v = 12;
+    int num_eval_pts_u = 128;
+    int num_eval_pts_v = 128;
+    double step_u = (kvU[kvU.size() - 1] - kvU[0]) / (num_eval_pts_u - 1);
+    double step_v = (kvV[kvV.size() - 1] - kvV[0]) / (num_eval_pts_v - 1);
+
+    for (int i = 0; i < num_eval_pts_u; i++)
+    {
+        double u = kvU[0] + i * step_u;
+        for (int j = 0; j < num_eval_pts_v; j++)
+        {
+            double v = kvV[0] + j * step_v;
+            XYZ point = NurbsSurface::GetPointOnSurface(surface, UV(u,v));
+        }
+    }
+
+
 }
+#pragma endregion
 
 int main(int, char* [])
 {
@@ -230,15 +251,10 @@ int main(int, char* [])
 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     
-    if (_is_curve_fitting)
-    {
-        CurveFitting(renderer);
-       
-    }
-    else
-    {
-        SurfaceFitting(renderer);
-    }
+    CurveFitting(renderer);
+
+    //or Surface Fitting:
+    //SurfaceFitting(renderer);
 
     vtkNew<vtkAxesActor> axesActor;
     vtkNew<vtkTransform>  userTrans;
