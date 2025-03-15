@@ -15,6 +15,6 @@ using namespace LNLib;
 
 void DisplayTargetCurve(vtkSmartPointer<vtkRenderer> renderer, const std::vector<XYZ>& tessellation);
 
-void DisplayNurbsCurve(vtkSmartPointer<vtkRenderer> renderer, const LN_NurbsCurve& nurbsCurve3d);
+void DisplayNurbsCurve(vtkSmartPointer<vtkRenderer> renderer, const LN_NurbsCurve& nurbsCurve);
 
-void DisplayControlPoints(vtkSmartPointer<vtkRenderer> renderer, std::vector<vtkSmartPointer<vtkActor>>& actors, const std::vector<XYZ>& points);
+void DisplaySurface(vtkSmartPointer<vtkRenderer> renderer, const LN_NurbsSurface& nurbsSurface, bool isTarget);
