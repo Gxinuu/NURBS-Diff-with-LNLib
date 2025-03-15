@@ -1,5 +1,3 @@
-# ***This work is in progress.***
-
 ## Introduction
 **[NURBS-Diff](https://www.sciencedirect.com/science/article/abs/pii/S0010448522000045)** is a nerual network differentiable programming module for NURBS, and **[LNLib](https://github.com/BIMCoderLiang/LNLib)** is a C++ NURBS Algorithms Library on Github. **NURBS-Diff-with-LNLib** is a simplified reproduction for NURBS-Diff by using LNLib.
 
@@ -7,6 +5,12 @@
 - Download Libtorch from https://pytorch.org/get-started/locally/. (For example: local-download folder is C:/Code/CodeReference/)
 - Reset Libtorch Path in CMakeLists.txt (from **src** folder) up to your Libtorch download path.
 - Run build.bat to construct C++ solution by CMake.
+
+## Visualization
+We use [VTK](https://vtk.org/) to visualize NURBS fitting curve and surface.
+
+<img src="images/nurbs curve fitting.jpg" width=400 height=400>
+
 
 ## Contributing
 Welcome join this project including discussions in **Issues** and make **Pull requests**.
