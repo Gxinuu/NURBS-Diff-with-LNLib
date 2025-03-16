@@ -220,6 +220,8 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     surface.KnotVectorV = kvV;
     surface.ControlPoints = controlPoints;
 
+    DisplaySurface(renderer, surface, true);
+
     //Start Fitting
     int num_ctrl_pts_u = 12;
     int num_ctrl_pts_v = 12;
@@ -251,10 +253,11 @@ int main(int, char* [])
 
     vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
     
-    CurveFitting(renderer);
+    //Example 1: Curve Fitting:
+    //CurveFitting(renderer);
 
-    //or Surface Fitting:
-    //SurfaceFitting(renderer);
+    //or Example 2: Surface Fitting:
+    SurfaceFitting(renderer);
 
     vtkNew<vtkAxesActor> axesActor;
     vtkNew<vtkTransform>  userTrans;
