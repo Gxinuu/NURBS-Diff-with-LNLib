@@ -55,6 +55,7 @@ torch::Tensor ND_LNLib::SurfaceEvalFunction::forward(AutogradContext* ctx, torch
 
 tensor_list ND_LNLib::SurfaceEvalFunction::backward(AutogradContext* ctx, tensor_list grad_outputs)
 {
+    // 获取保存的变量
     torch::Tensor controlPoints = ctx->get_saved_variables()[0];
     torch::Tensor uspan = ctx->saved_data["uspan"].toTensor();
     torch::Tensor vspan = ctx->saved_data["vspan"].toTensor();
@@ -69,39 +70,74 @@ tensor_list ND_LNLib::SurfaceEvalFunction::backward(AutogradContext* ctx, tensor
     int dimension = ctx->saved_data["_dimension"].toInt();
     torch::Tensor surface = ctx->saved_data["surface"].toTensor();
 
-    torch::Tensor grad_sw = torch::zeros({ grad_outputs[0].size(0), grad_outputs[0].size(1),grad_outputs[0].size(2), dimension + 1 }, torch::kDouble);
+    // 在 backward 函数中获取 uParamList 和 vParamList 的尺寸
+    int num_points_u = uParamList.size(0);
+    int num_points_v = vParamList.size(0);
+
+    torch::Tensor grad_output_3d = grad_outputs[0].view({
+        grad_outputs[0].size(0), 
+        num_points_u, 
+        num_points_v, 
+        dimension
+    });
+    
+    // torch::Tensor grad_sw = torch::zeros({ grad_outputs[0].size(0), grad_outputs[0].size(1),grad_outputs[0].size(2), dimension + 1 }, torch::kDouble);
+    torch::Tensor grad_sw = torch::zeros({grad_output_3d.size(0), num_points_u, num_points_v,dimension}, torch::kDouble);
     for (int i = 0; i < dimension; ++i) 
     {
-        grad_sw.slice(3, i, i + 1) = grad_outputs[i].unsqueeze(-1);
+        // grad_sw.slice(3, i, i + 1) = grad_outputs[i].unsqueeze(-1);
+        grad_sw.slice(3, i, i + 1) = grad_output_3d.slice(3, i, i + 1);
     }
     for (int d = 0; d < dimension; ++d) 
     {    
-        torch::Tensor grad_sw_slice = grad_sw.slice(3, dimension, dimension + 1);
-        torch::Tensor grad_output_d = grad_outputs[d];
-        torch::Tensor surfaces_slice = surface.slice(3, dimension, dimension + 1);
-        grad_sw_slice += grad_output_d.div(surfaces_slice);
+        // torch::Tensor grad_sw_slice = grad_sw.slice(3, dimension, dimension + 1);
+        // torch::Tensor grad_output_d = grad_outputs[d];
+        // torch::Tensor surfaces_slice = surface.slice(3, dimension, dimension + 1);
+        // grad_sw_slice += grad_output_d.div(surfaces_slice);
+        torch::Tensor surfaces_slice = surface.slice(3, d, d + 1);
+        torch::Tensor grad_output_d = grad_output_3d.slice(3, d, d + 1);
+        grad_sw.slice(3, d, d + 1) += grad_output_d.div(surfaces_slice);
     }
 
     torch::Tensor grad_ctrl_pts = torch::zeros_like(controlPoints);
 
-    for (int k = 0; k < grad_outputs[0].size(0); k++)
-    {
-        for (int j = 0; j < vParamList.size(0); j++)
-        {
-            for (int i = 0; i < uParamList.size(0); i++)
-            {
-                auto grad_temp = torch::zeros({ degreeV + 1, dimension + 1 });
-                for (int l = 0; l <= degreeV; l++)
-                {
-                    grad_temp[l] = vBasisFunctions[j][l] * grad_outputs[k][i][j];
-                    for (int r = 0; r <= degreeU; r++)
-                    {
-                        grad_ctrl_pts[k][uspan[i].item<int>() - degreeU + r][vspan[j].item<int>() - degreeV + l] = grad_ctrl_pts[k][uspan[i].item<int>() - degreeU + r][vspan[j].item<int>() - degreeV + l] + uBasisFunctions[i][r].item<double>() * grad_temp[l];
+    // for (int k = 0; k < grad_outputs[0].size(0); k++)
+    // {
+    //     for (int j = 0; j < vParamList.size(0); j++)
+    //     {
+    //         for (int i = 0; i < uParamList.size(0); i++)
+    //         {
+    //             auto grad_temp = torch::zeros({ degreeV + 1, dimension + 1 });
+    //             for (int l = 0; l <= degreeV; l++)
+    //             {
+    //                 grad_temp[l] = vBasisFunctions[j][l] * grad_outputs[k][i][j];
+    //                 for (int r = 0; r <= degreeU; r++)
+    //                 {
+    //                     grad_ctrl_pts[k][uspan[i].item<int>() - degreeU + r][vspan[j].item<int>() - degreeV + l] = grad_ctrl_pts[k][uspan[i].item<int>() - degreeU + r][vspan[j].item<int>() - degreeV + l] + uBasisFunctions[i][r].item<double>() * grad_temp[l];
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    int batch_size = grad_output_3d.size(0);
+    for (int k = 0; k < batch_size; k++) {
+        for (int j = 0; j < num_points_v; j++) {
+            for (int i = 0; i < num_points_u; i++) {
+                for (int d = 0; d < dimension; ++d) {
+                    auto grad_temp = torch::zeros({degreeV + 1});
+                    for (int l = 0; l <= degreeV; l++) {
+                        grad_temp[l] = vBasisFunctions[j][l] * grad_output_3d[k][i][j][d];
+                        for (int r = 0; r <= degreeU; r++) {
+                            grad_ctrl_pts[k][uspan[i].item<int>() - degreeU + r][vspan[j].item<int>() - degreeV + l] += 
+                                uBasisFunctions[i][r].item<double>() * grad_temp[l];
+                        }
                     }
                 }
             }
         }
     }
 
-    return { grad_ctrl_pts[0], torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor()};
+    // return { grad_ctrl_pts[0], torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor()};
+    return { grad_ctrl_pts, torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor()};
 }

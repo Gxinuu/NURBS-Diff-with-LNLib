@@ -212,14 +212,12 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     controlPoints[5][4] = XYZW(43.3333333, 50, 0, 1);
     controlPoints[5][5] = XYZW(50, 50, 0, 1);
 
-    //Target Surface
     LN_NurbsSurface surface;
     surface.DegreeU = degreeU;
     surface.DegreeV = degreeV;
     surface.KnotVectorU = kvU;
     surface.KnotVectorV = kvV;
     surface.ControlPoints = controlPoints;
-
     DisplaySurface(renderer, surface, true);
 
     //Start Fitting
@@ -227,19 +225,86 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     int num_ctrl_pts_v = 12;
     int num_eval_pts_u = 128;
     int num_eval_pts_v = 128;
-    double step_u = (kvU[kvU.size() - 1] - kvU[0]) / (num_eval_pts_u - 1);
-    double step_v = (kvV[kvV.size() - 1] - kvV[0]) / (num_eval_pts_v - 1);
+    // double step_u = (kvU[kvU.size() - 1] - kvU[0]) / (num_eval_pts_u - 1);
+    // double step_v = (kvV[kvV.size() - 1] - kvV[0]) / (num_eval_pts_v - 1);
+    double step_u = (kvU.back() - kvU[0]) / (num_eval_pts_u - 1);
+    double step_v = (kvV.back() - kvV[0]) / (num_eval_pts_v - 1);
 
-    for (int i = 0; i < num_eval_pts_u; i++)
-    {
+    std::vector<XYZ> targetPoints;
+    for (int i = 0; i < num_eval_pts_u; ++i) {
         double u = kvU[0] + i * step_u;
-        for (int j = 0; j < num_eval_pts_v; j++)
-        {
+        for (int j = 0; j < num_eval_pts_v; ++j) {
             double v = kvV[0] + j * step_v;
-            XYZ point = NurbsSurface::GetPointOnSurface(surface, UV(u,v));
+            targetPoints.push_back(NurbsSurface::GetPointOnSurface(surface, UV(u, v)));
         }
     }
 
+    // transform to tensor [1, num_points, 3]
+    torch::Tensor target_tensor = torch::zeros({1, num_eval_pts_u * num_eval_pts_v, 3});
+    for (size_t i = 0; i < targetPoints.size(); ++i) {
+        target_tensor[0][i][0] = targetPoints[i].GetX();
+        target_tensor[0][i][1] = targetPoints[i].GetY();
+        target_tensor[0][i][2] = targetPoints[i].GetZ();
+    }
+
+    // Initialize trainable control points [1, 12, 12, 3]
+    auto inp_ctrl_pts = torch::randn({1, num_ctrl_pts_u, num_ctrl_pts_v, 3},
+        torch::dtype(torch::kFloat).requires_grad(true));
+
+    auto eval_module = std::make_shared<ND_LNLib::SurfaceEvalModule>(
+        num_ctrl_pts_u, num_ctrl_pts_v,
+        3, 3,          // degree U/V
+        num_eval_pts_u, num_eval_pts_v,
+        3              // dimension
+    );
+
+    torch::optim::Adam optimizer({inp_ctrl_pts}, torch::optim::AdamOptions(0.01));
+
+    std::cout << "start training" << std::endl;
+    for (int epoch = 0; epoch < 5000; ++epoch) {
+        optimizer.zero_grad();
+        
+        auto weights = torch::ones({1, num_ctrl_pts_u, num_ctrl_pts_v, 1});
+        auto input = torch::cat({inp_ctrl_pts, weights}, -1);
+        
+        auto output = eval_module->forward(input);
+        auto output_flat = output.view({1, -1, 3});
+        
+        auto loss = torch::mse_loss(output_flat, target_tensor);
+        
+        loss.backward();
+        optimizer.step();
+
+        if ((epoch + 1) % 10 == 0) {
+            std::cout << "Epoch " << epoch + 1 
+                    << ", Loss: " << loss.item<float>() << std::endl;
+        }
+
+    }
+
+    LN_NurbsSurface fittedSurface;
+    
+    fittedSurface.DegreeU = degreeU;
+    fittedSurface.DegreeV = degreeV;
+    fittedSurface.KnotVectorU = kvU;
+    fittedSurface.KnotVectorV = kvV;
+    
+    auto ctrl_pts_tensor = inp_ctrl_pts.squeeze(0);
+    fittedSurface.ControlPoints.resize(12);
+    for(int i=0; i<12; ++i){
+        fittedSurface.ControlPoints[i].resize(12);
+        for(int j=0; j<12; ++j){
+            auto pt = ctrl_pts_tensor[i][j];
+            fittedSurface.ControlPoints[i][j] = XYZW(
+                pt[0].item<double>(),  // x
+                pt[1].item<double>(),  // y
+                pt[2].item<double>(),  // z
+                1.0                    // w
+            );
+        }
+    }
+
+    DisplaySurface(renderer, fittedSurface, false);
 
 }
 #pragma endregion
@@ -255,7 +320,6 @@ int main(int, char* [])
     
     //Example 1: Curve Fitting:
     //CurveFitting(renderer);
-
     //or Example 2: Surface Fitting:
     SurfaceFitting(renderer);
 
