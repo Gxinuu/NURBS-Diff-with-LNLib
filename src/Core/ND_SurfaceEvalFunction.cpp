@@ -81,44 +81,19 @@ tensor_list ND_LNLib::SurfaceEvalFunction::backward(AutogradContext* ctx, tensor
         dimension
     });
     
-    // torch::Tensor grad_sw = torch::zeros({ grad_outputs[0].size(0), grad_outputs[0].size(1),grad_outputs[0].size(2), dimension + 1 }, torch::kDouble);
     torch::Tensor grad_sw = torch::zeros({grad_output_3d.size(0), num_points_u, num_points_v,dimension}, torch::kDouble);
     for (int i = 0; i < dimension; ++i) 
     {
-        // grad_sw.slice(3, i, i + 1) = grad_outputs[i].unsqueeze(-1);
         grad_sw.slice(3, i, i + 1) = grad_output_3d.slice(3, i, i + 1);
     }
     for (int d = 0; d < dimension; ++d) 
     {    
-        // torch::Tensor grad_sw_slice = grad_sw.slice(3, dimension, dimension + 1);
-        // torch::Tensor grad_output_d = grad_outputs[d];
-        // torch::Tensor surfaces_slice = surface.slice(3, dimension, dimension + 1);
-        // grad_sw_slice += grad_output_d.div(surfaces_slice);
         torch::Tensor surfaces_slice = surface.slice(3, d, d + 1);
         torch::Tensor grad_output_d = grad_output_3d.slice(3, d, d + 1);
         grad_sw.slice(3, d, d + 1) += grad_output_d.div(surfaces_slice);
     }
 
     torch::Tensor grad_ctrl_pts = torch::zeros_like(controlPoints);
-
-    // for (int k = 0; k < grad_outputs[0].size(0); k++)
-    // {
-    //     for (int j = 0; j < vParamList.size(0); j++)
-    //     {
-    //         for (int i = 0; i < uParamList.size(0); i++)
-    //         {
-    //             auto grad_temp = torch::zeros({ degreeV + 1, dimension + 1 });
-    //             for (int l = 0; l <= degreeV; l++)
-    //             {
-    //                 grad_temp[l] = vBasisFunctions[j][l] * grad_outputs[k][i][j];
-    //                 for (int r = 0; r <= degreeU; r++)
-    //                 {
-    //                     grad_ctrl_pts[k][uspan[i].item<int>() - degreeU + r][vspan[j].item<int>() - degreeV + l] = grad_ctrl_pts[k][uspan[i].item<int>() - degreeU + r][vspan[j].item<int>() - degreeV + l] + uBasisFunctions[i][r].item<double>() * grad_temp[l];
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     int batch_size = grad_output_3d.size(0);
     for (int k = 0; k < batch_size; k++) {
@@ -138,6 +113,5 @@ tensor_list ND_LNLib::SurfaceEvalFunction::backward(AutogradContext* ctx, tensor
         }
     }
 
-    // return { grad_ctrl_pts[0], torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor()};
     return { grad_ctrl_pts, torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor(), torch::Tensor()};
 }

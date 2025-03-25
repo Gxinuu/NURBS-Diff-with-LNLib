@@ -212,6 +212,7 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     controlPoints[5][4] = XYZW(43.3333333, 50, 0, 1);
     controlPoints[5][5] = XYZW(50, 50, 0, 1);
 
+    //Target Surface
     LN_NurbsSurface surface;
     surface.DegreeU = degreeU;
     surface.DegreeV = degreeV;
@@ -223,10 +224,8 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     //Start Fitting
     int num_ctrl_pts_u = 12;
     int num_ctrl_pts_v = 12;
-    int num_eval_pts_u = 128;
-    int num_eval_pts_v = 128;
-    // double step_u = (kvU[kvU.size() - 1] - kvU[0]) / (num_eval_pts_u - 1);
-    // double step_v = (kvV[kvV.size() - 1] - kvV[0]) / (num_eval_pts_v - 1);
+    int num_eval_pts_u = 64;
+    int num_eval_pts_v = 64;
     double step_u = (kvU.back() - kvU[0]) / (num_eval_pts_u - 1);
     double step_v = (kvV.back() - kvV[0]) / (num_eval_pts_v - 1);
 
@@ -290,10 +289,10 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     fittedSurface.KnotVectorV = kvV;
     
     auto ctrl_pts_tensor = inp_ctrl_pts.squeeze(0);
-    fittedSurface.ControlPoints.resize(12);
-    for(int i=0; i<12; ++i){
-        fittedSurface.ControlPoints[i].resize(12);
-        for(int j=0; j<12; ++j){
+    fittedSurface.ControlPoints.resize(num_ctrl_pts_u);
+    for(int i=0; i< num_ctrl_pts_u; ++i){
+        fittedSurface.ControlPoints[i].resize(num_ctrl_pts_v);
+        for(int j=0; j< num_ctrl_pts_v; ++j){
             auto pt = ctrl_pts_tensor[i][j];
             fittedSurface.ControlPoints[i][j] = XYZW(
                 pt[0].item<double>(),  // x

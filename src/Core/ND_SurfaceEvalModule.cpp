@@ -70,12 +70,6 @@ ND_LNLib::SurfaceEvalModule::SurfaceEvalModule(int uControlPointsCount, int vCon
 	Nu.reserve(paramSize);
 	for (int i = 0; i < paramSize; i++)
 	{
-		// int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeU, knotVectorU, _uParamList[i].item<double>());
-		// double N[LNLib::Constants::NURBSMaxDegree + 1];
-		// LNLib::Polynomials::BasisFunctions(spanIndex, _degreeU, knotVectorU, _uParamList[i].item<double>(), N);
-		// uSpanList.emplace_back(spanIndex);
-		// torch::Tensor Nu_Tensor = torch::from_blob(N, { LNLib::Constants::NURBSMaxDegree + 1 }, torch::kDouble);
-		// Nu.emplace_back(Nu_Tensor);
 		std::vector<double> N(_degreeU + 1);
 		double u_param = _uParamList[i].item<double>();
 		int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeU, knotVectorU, u_param);
@@ -98,12 +92,6 @@ ND_LNLib::SurfaceEvalModule::SurfaceEvalModule(int uControlPointsCount, int vCon
 	Nv.reserve(paramSize);
 	for (int i = 0; i < paramSize; i++)
 	{
-		// int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeV, knotVectorV, _vParamList[i].item<double>());
-		// double N[LNLib::Constants::NURBSMaxDegree + 1];
-		// LNLib::Polynomials::BasisFunctions(spanIndex, _degreeV, knotVectorV, _vParamList[i].item<double>(), N);
-		// vSpanList.emplace_back(spanIndex);
-		// torch::Tensor Nv_Tensor = torch::from_blob(N, { LNLib::Constants::NURBSMaxDegree + 1 }, torch::kDouble);
-		// Nv.emplace_back(Nv_Tensor);
 		std::vector<double> N(_degreeV + 1);
 		double v_param = _vParamList[i].item<double>();
 		int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeV, knotVectorV, v_param);
@@ -114,7 +102,6 @@ ND_LNLib::SurfaceEvalModule::SurfaceEvalModule(int uControlPointsCount, int vCon
 		Nv.emplace_back(Nv_Tensor);
 	}
 
-	// _vspan = torch::from_blob(vSpanList.data(), torch::IntList(paramSize), torch::TensorOptions().dtype(torch::kInt)).clone();
 	_vspan = torch::tensor(vSpanList, torch::kInt32).clone();
 	_vBasisFunctions = torch::stack(Nv);
 
