@@ -3,7 +3,7 @@ set oldPath=%cd%
 
 
 :: 设置 MSVC 编译器环境变量（路径根据你的安装位置调整）
-call "D:\VisiualStudio\visualstudio\VC\Auxiliary\Build\vcvars64.bat"
+call "D:\VisualStudio\visualstudio\VC\Auxiliary\Build\vcvars64.bat"
 :: 设置项目路径
 set PROJECT_ROOT=%~dp0
 cd /d "%PROJECT_ROOT%"
