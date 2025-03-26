@@ -268,7 +268,7 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
     // Initialize trainable control points [1, 12, 12, 3]
     auto inp_ctrl_pts = torch::randn({1, num_ctrl_pts_u, num_ctrl_pts_v, 3}, torch::dtype(torch::kDouble).requires_grad(true));
 
-    auto eval_module = std::make_shared<ND_LNLib::SurfaceEvalModule>(
+    ND_LNLib::SurfaceEvalModule sm(
         num_ctrl_pts_u, num_ctrl_pts_v,
         3, 3,          // degree U/V
         num_eval_pts_u, num_eval_pts_v,
@@ -284,10 +284,12 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
         auto weights = torch::ones({1, num_ctrl_pts_u, num_ctrl_pts_v, 1});
         auto input = torch::cat({inp_ctrl_pts, weights}, -1);
         
-        auto output = eval_module->forward(input);
-        auto output_flat = output.view({1, -1, 3});
-        
-        auto loss = torch::mse_loss(output_flat, target_tensor);
+        auto output = sm.forward(input);
+        target_tensor = target_tensor.reshape({ 1, num_eval_pts_u * num_eval_pts_v, 3 });
+        output = output.reshape({ 1, num_eval_pts_u * num_eval_pts_v, 3 });
+
+        // º∆À„À ß
+        torch::Tensor loss = ((target_tensor - output).pow(2)).mean();
         
         loss.backward();
         optimizer.step();

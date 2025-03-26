@@ -22,44 +22,20 @@ ND_LNLib::SurfaceEvalModule::SurfaceEvalModule(int uControlPointsCount, int vCon
 	int knotVectorCount = m + 1;
 	std::vector<double> knotVectorU(knotVectorCount);
 
-	for (int i = 0; i <= _degreeU; i++) {
-		knotVectorU[i] = 0.0;
-		knotVectorU[knotVectorU.size() - 1 - i] = 1.0;
-	}
-
-	int internal = _uControlPointsCount - _degreeU - 1;
-	if (internal > 0) {
-		const double spacing = 1.0 / (internal + 1); 
-		for (int j = 0; j < internal; ++j) {
-			const int index = _degreeU + 1 + j;
-			knotVectorU[index] = (j + 1) * spacing;
+	for (int i = 0; i <= m; ++i) {
+		if (i <= _degreeU) {
+			knotVectorU[i] = 0.0;
+		}
+		else if (i >= m - _degreeU) {
+			knotVectorU[i] = 1.0;
+		}
+		else {
+			knotVectorU[i] = static_cast<double>(i - _degreeU) / (_uControlPointsCount - _degreeU);
 		}
 	}
 
 	_knotVectorU = torch::from_blob(knotVectorU.data(), { static_cast<long>(knotVectorU.size()) }, torch::kDouble);
 	_uParamList = torch::linspace(knotVectorU[0], knotVectorU[knotVectorU.size() - 1], _uEvalCount, torch::kDouble);
-
-	int n = (_vControlPointsCount - 1) + _degreeV + 1;
-	knotVectorCount = n + 1;
-	std::vector<double> knotVectorV(knotVectorCount);
-
-	for (int i = 0; i <= _degreeV; i++) {
-		knotVectorV[i] = 0.0;
-		knotVectorV[knotVectorV.size() - 1 - i] = 1.0;
-	}
-
-	internal = _vControlPointsCount - _degreeV - 1;
-	if (internal > 0) {
-		const double spacing = 1.0 / (internal + 1); 
-
-		for (int j = 0; j < internal; ++j) {
-			const int index = _degreeV + 1 + j;
-			knotVectorV[index] = (j + 1) * spacing;
-		}
-	}
-
-	_knotVectorV = torch::from_blob(knotVectorV.data(), { static_cast<long>(knotVectorV.size()) }, torch::kDouble);
-	_vParamList = torch::linspace(knotVectorV[0], knotVectorV[knotVectorV.size() - 1], _vEvalCount, torch::kDouble);
 
 	int paramSize = _uParamList.size(0);
 
@@ -70,18 +46,42 @@ ND_LNLib::SurfaceEvalModule::SurfaceEvalModule(int uControlPointsCount, int vCon
 	Nu.reserve(paramSize);
 	for (int i = 0; i < paramSize; i++)
 	{
+		int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeU, knotVectorU, _uParamList[i].item<double>());
+
 		std::vector<double> N(_degreeU + 1);
-		double u_param = _uParamList[i].item<double>();
-		int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeU, knotVectorU, u_param);
-		LNLib::Polynomials::BasisFunctions(spanIndex, _degreeU, knotVectorU, u_param, N.data());
-		// 深拷贝数据到Tensor
-		torch::Tensor Nu_Tensor = torch::tensor(N, torch::dtype(torch::kDouble).requires_grad(false));
+		LNLib::Polynomials::BasisFunctions(spanIndex, _degreeU, knotVectorU, _uParamList[i].item<double>(), N.data());
+
 		uSpanList.emplace_back(spanIndex);
+
+		torch::Tensor Nu_Tensor = torch::tensor(
+			torch::ArrayRef<double>(N.data(), _degreeU + 1),
+			torch::kDouble
+		);
 		Nu.emplace_back(Nu_Tensor);
 	}
 
 	_uspan = torch::from_blob(uSpanList.data(), torch::IntList(paramSize), torch::TensorOptions().dtype(torch::kInt)).clone();
 	_uBasisFunctions = torch::stack(Nu);
+
+
+	int n = (_vControlPointsCount - 1) + _degreeV + 1;
+	knotVectorCount = n + 1;
+	std::vector<double> knotVectorV(knotVectorCount);
+
+	for (int i = 0; i <= n; ++i) {
+		if (i <= _degreeV) {
+			knotVectorV[i] = 0.0;
+		}
+		else if (i >= n - _degreeV) {
+			knotVectorV[i] = 1.0;
+		}
+		else {
+			knotVectorV[i] = static_cast<double>(i - _degreeV) / (_vControlPointsCount - _degreeV);
+		}
+	}
+
+	_knotVectorV = torch::from_blob(knotVectorV.data(), { static_cast<long>(knotVectorV.size()) }, torch::kDouble);
+	_vParamList = torch::linspace(knotVectorV[0], knotVectorV[knotVectorV.size() - 1], _vEvalCount, torch::kDouble);
 
 	paramSize = _vParamList.size(0);
 
@@ -92,17 +92,21 @@ ND_LNLib::SurfaceEvalModule::SurfaceEvalModule(int uControlPointsCount, int vCon
 	Nv.reserve(paramSize);
 	for (int i = 0; i < paramSize; i++)
 	{
+		int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeV, knotVectorV, _vParamList[i].item<double>());
+
 		std::vector<double> N(_degreeV + 1);
-		double v_param = _vParamList[i].item<double>();
-		int spanIndex = LNLib::Polynomials::GetKnotSpanIndex(_degreeV, knotVectorV, v_param);
-		LNLib::Polynomials::BasisFunctions(spanIndex, _degreeV, knotVectorV, v_param, N.data());
-		// 深拷贝数据到Tensor
-		torch::Tensor Nv_Tensor = torch::tensor(N, torch::dtype(torch::kDouble).requires_grad(false));
+		LNLib::Polynomials::BasisFunctions(spanIndex, _degreeV, knotVectorV, _vParamList[i].item<double>(), N.data());
+
 		vSpanList.emplace_back(spanIndex);
+
+		torch::Tensor Nv_Tensor = torch::tensor(
+			torch::ArrayRef<double>(N.data(), _degreeV + 1),
+			torch::kDouble
+		);
 		Nv.emplace_back(Nv_Tensor);
 	}
 
-	_vspan = torch::tensor(vSpanList, torch::kInt32).clone();
+	_vspan = torch::from_blob(vSpanList.data(), torch::IntList(paramSize), torch::TensorOptions().dtype(torch::kInt)).clone();
 	_vBasisFunctions = torch::stack(Nv);
 
 	_uBasisFunctions.view({ _uEvalCount, degreeU + 1 });
