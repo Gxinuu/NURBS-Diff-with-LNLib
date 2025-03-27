@@ -264,8 +264,8 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
         target_tensor[0][i][1] = targetPoints[i].GetY();
         target_tensor[0][i][2] = targetPoints[i].GetZ();
     }
-
-    // Initialize trainable control points [1, 12, 12, 3]
+    
+    // Initialize trainable control points
     auto inp_ctrl_pts = torch::randn({1, num_ctrl_pts_u, num_ctrl_pts_v, 3}, torch::dtype(torch::kDouble).requires_grad(true));
 
     ND_LNLib::SurfaceEvalModule sm(
@@ -285,7 +285,6 @@ void SurfaceFitting(vtkSmartPointer<vtkRenderer> renderer)
         auto input = torch::cat({inp_ctrl_pts, weights}, -1);
         
         auto output = sm.forward(input);
-        target_tensor = target_tensor.reshape({ 1, num_eval_pts_u * num_eval_pts_v, 3 });
         output = output.reshape({ 1, num_eval_pts_u * num_eval_pts_v, 3 });
 
         // º∆À„À ß
